@@ -1,9 +1,10 @@
 package bank.account.api.model;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -13,7 +14,6 @@ import javax.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity(name="BANK_ACCOUNT")
@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@EqualsAndHashCode
+
 public class BankAccount implements Serializable {
 	
 	/**
@@ -35,8 +35,19 @@ public class BankAccount implements Serializable {
 	
 	private double balance;
 	
-	@OneToMany(mappedBy = "bankaccount")
-	private List<Transaction> history = new ArrayList<>() ;
+	@OneToMany(mappedBy = "bankaccount", cascade=CascadeType.ALL)	
+	@Builder.Default
+	private Set<Transaction> history = new HashSet<>();
+	
+	
+	public void setHistory(Set<Transaction> history) {
+        this.history = history;
+        for(Transaction transaction : history) {
+        	transaction.setBankaccount(this);
+        }
+    }
+	
+	
 	
 	
 	

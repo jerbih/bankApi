@@ -6,16 +6,18 @@ import java.time.LocalDateTime;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity
@@ -23,7 +25,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@EqualsAndHashCode
 public class Transaction implements Serializable {
 	
 	public enum TransactionType {
@@ -44,8 +45,9 @@ public class Transaction implements Serializable {
 	@Enumerated(EnumType.STRING)
 	private TransactionType transactionType;
 	
-	@ManyToOne(optional = false)
-	@JoinColumn(name = "account_id", nullable = false, insertable=false, updatable=false)
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "account_id")
+	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	private BankAccount bankaccount;
 }
 

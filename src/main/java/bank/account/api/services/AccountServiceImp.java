@@ -3,6 +3,8 @@ package bank.account.api.services;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,6 +16,7 @@ import bank.account.api.model.BankAccount;
 import bank.account.api.model.Transaction;
 import bank.account.api.model.Transaction.TransactionType;
 import bank.account.api.repository.BankAccountRepository;
+import bank.account.api.repository.TransactionRepository;
 
 @Service
 public class AccountServiceImp implements AccountService {
@@ -25,6 +28,9 @@ public class AccountServiceImp implements AccountService {
 	@Autowired
 	private BankAccountRepository accountRepository;
 	
+	@Autowired
+	private TransactionRepository transactionRepository;
+	
 	
 	@Override
 	public List<BankAccount> getAccounts() {
@@ -35,7 +41,7 @@ public class AccountServiceImp implements AccountService {
 
 	@Override
 	public BankAccount getAccount(Long accountNumber) throws BaseException {	
-		BankAccount account = accountRepository.findByNumber(Long.valueOf(accountNumber));
+		BankAccount account = accountRepository.findByNumber(accountNumber);
 		if (account == null) {
 			throw new AccountNotFoundException(INVALID_ACCOUNT_NUMBER, "accountNumber");
 		}
@@ -54,7 +60,7 @@ public class AccountServiceImp implements AccountService {
 		if (account == null) {
 			throw new AccountNotFoundException(INVALID_ACCOUNT_NUMBER, "accountNumber");
 		}
-		return account.getHistory();
+		return account.getHistory().stream().collect(Collectors.toList());
 	}
 
 	@Override
@@ -105,11 +111,8 @@ public class AccountServiceImp implements AccountService {
 		
 		double newBalance = account.getBalance() + amount;
 		account.setBalance(newBalance);
-		
-		Transaction transaction = Transaction.builder().date(LocalDateTime.now()).comment(comment).bankaccount(account).transactionType(type).amount(amount).build();
-		account.getHistory().add(transaction);
-		
-		
+		Transaction transaction = Transaction.builder().bankaccount(account).date(LocalDateTime.now()).comment(comment).transactionType(type).amount(amount).build();
+		transactionRepository.save(transaction);
 		accountRepository.save(account);
 		
 		return transaction.getId();

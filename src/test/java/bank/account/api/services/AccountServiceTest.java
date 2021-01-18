@@ -9,7 +9,9 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,6 +30,7 @@ import bank.account.api.exception.InvalidOperationException;
 import bank.account.api.model.BankAccount;
 import bank.account.api.model.Transaction;
 import bank.account.api.repository.BankAccountRepository;
+import bank.account.api.repository.TransactionRepository;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes=BankAccountApplication.class)
@@ -41,6 +44,9 @@ public class AccountServiceTest {
 
 	@Mock
 	private BankAccountRepository accountRepository;
+	
+	@Mock
+	private TransactionRepository transactionRepository;
 
 	private List<BankAccount> bankAccounts = new ArrayList<>();
 
@@ -152,7 +158,8 @@ public class AccountServiceTest {
 		Mockito.when(accountRepository.findByNumber(4l)).thenReturn(account);
 		
 		Mockito.when(accountRepository.save(account)).thenReturn(account);
-
+		
+		
 		//Check  balance before the withdrawl
 		assertEquals(200, account.getBalance());
 		
@@ -235,9 +242,9 @@ public class AccountServiceTest {
 	
 	private List<BankAccount> buildAccounts () {
 		BankAccount account = null;
-
+        Set<Transaction> transactions = new HashSet<>();
 		for (int i = 1; i <= BANK_ACCOUNT_TABLE_SIZE; i++) {
-			account = BankAccount.builder().number(Long.valueOf(i)).balance(50*i).history(new ArrayList<>()).build();
+			account = BankAccount.builder().number(Long.valueOf(i)).balance(50*i).build();
 			bankAccounts.add(account);			
 		}
 
@@ -246,13 +253,14 @@ public class AccountServiceTest {
 				.comment("deposit money").date(LocalDateTime.now())
 				.bankaccount(bankAccounts.get(0)).build();	
 
-		bankAccounts.get(0).getHistory().add(transaction);		
+		transactions.add(transaction);		
 		// bank account balance set to 270d
 		Transaction transaction1 = Transaction.builder().id(2l).amount(200d).comment("deposit money")
 				.date(LocalDateTime.now()).bankaccount(bankAccounts.get(0)).build();
-
+		transactions.add(transaction1);
+		
 		bankAccounts.get(0).setBalance(270);
-		bankAccounts.get(0).getHistory().add(transaction1);
+		bankAccounts.get(0).setHistory(transactions);
 
 		return bankAccounts;
 	}

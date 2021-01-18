@@ -116,7 +116,7 @@ public class BankAccountController {
 	public ResponseEntity<List<Transaction>> getHistory (final @PathVariable @NotEmpty Long identifier) throws Exception {
 		List<Transaction> history = new ArrayList<>();
 		try {
-			if (accountService.isAccountExist(identifier)) {
+			if (!accountService.isAccountExist(identifier)) {
 				throw new AccountNotFoundException("Account is not Found","number");
 			}
 			history = accountService.getHistory(identifier);

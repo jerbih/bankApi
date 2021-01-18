@@ -13,7 +13,7 @@ public class InvalidOperationException extends BaseException {
 	private static final long serialVersionUID = -5313170798344581455L;
 
 	public InvalidOperationException(String errorKey, String errorField) {
-		super(HttpStatus.BAD_REQUEST, Map.of(errorKey,errorField));        
+		super(HttpStatus.BAD_REQUEST, "Invalid operation", Map.of(errorKey,errorField));        
 	}
 
 	public InvalidOperationException(String message, Map<String, String> errors) {

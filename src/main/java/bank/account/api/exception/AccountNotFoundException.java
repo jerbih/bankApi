@@ -13,7 +13,7 @@ public class AccountNotFoundException extends BaseException {
 	private static final long serialVersionUID = -5313170798344581455L;
 
 	public AccountNotFoundException(String errorKey, String errorField) {
-		super(HttpStatus.NOT_FOUND, Map.of(errorKey,errorField));        
+		super(HttpStatus.NOT_FOUND,"Account not found", Map.of(errorKey,errorField));        
 	}
 
 	public AccountNotFoundException(String message, Map<String, String> errors) {

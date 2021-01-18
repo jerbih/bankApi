@@ -11,6 +11,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -35,11 +37,13 @@ public class BankAccount implements Serializable {
 	
 	private double balance;
 	
+	@JsonIgnore
 	@OneToMany(mappedBy = "bankaccount", cascade=CascadeType.ALL)	
 	@Builder.Default
 	private Set<Transaction> history = new HashSet<>();
 	
 	
+	@JsonIgnore
 	public void setHistory(Set<Transaction> history) {
         this.history = history;
         for(Transaction transaction : history) {

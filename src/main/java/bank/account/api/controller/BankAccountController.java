@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import bank.account.api.exception.AccountNotFoundException;
+import bank.account.api.exception.BaseException;
 import bank.account.api.exception.ClientErrorException;
 import bank.account.api.model.BankAccount;
 import bank.account.api.model.Transaction;
@@ -70,10 +71,12 @@ public class BankAccountController {
 		BankAccount bankAccount = null;
 		try {
 			bankAccount = accountService.getAccount(identifier);
+		} catch (BaseException e) {
+			throw e;
 		} catch (Exception e) {
 			log.error("Technical error {} ", e.getMessage());
 			throw new ClientErrorException(e.getMessage());
-		}		
+		}	
 		return new ResponseEntity <> (bankAccount, HttpStatus.OK);
 	}
 
@@ -91,6 +94,8 @@ public class BankAccountController {
 		BankAccount bankAccount = null;
 		try {
 			bankAccount = accountService.getAccount(identifier);
+		} catch (BaseException e) {
+			throw e;
 		} catch (Exception e) {
 			log.error("Technical error {} ", e.getMessage());
 			throw new ClientErrorException(e.getMessage());
@@ -115,6 +120,8 @@ public class BankAccountController {
 				throw new AccountNotFoundException("Account is not Found","number");
 			}
 			history = accountService.getHistory(identifier);
+		} catch (BaseException e) {
+			throw e;
 		} catch (Exception e) {
 			log.error("Technical error {} ", e.getMessage());
 			throw new ClientErrorException(e.getMessage());
@@ -141,6 +148,8 @@ public class BankAccountController {
 				throw new AccountNotFoundException("Account is not Found","number");
 			}
 			transactionId = accountService.deposit(identifier, ammount, comment);
+		} catch (BaseException e) {
+			throw e;
 		} catch (Exception e) {
 			log.error("Technical error {} ", e.getMessage());
 			throw new ClientErrorException(e.getMessage());
@@ -167,6 +176,8 @@ public class BankAccountController {
 				throw new AccountNotFoundException("Account is not Found","number");
 			}
 			transactionId = accountService.withDraw(identifier, ammount, comment);
+		} catch (BaseException e) {
+			throw e;
 		} catch (Exception e) {
 			log.error("Technical error {} ", e.getMessage());
 			throw new ClientErrorException(e.getMessage());

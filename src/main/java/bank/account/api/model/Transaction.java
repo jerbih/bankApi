@@ -13,7 +13,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -45,9 +46,10 @@ public class Transaction implements Serializable {
 	@Enumerated(EnumType.STRING)
 	private TransactionType transactionType;
 	
+	@JsonIgnore
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "account_id")
-	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	private BankAccount bankaccount;
+
 }
 

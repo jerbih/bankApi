@@ -3,7 +3,7 @@ package bank.account.api.services;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +16,6 @@ import bank.account.api.model.BankAccount;
 import bank.account.api.model.Transaction;
 import bank.account.api.model.Transaction.TransactionType;
 import bank.account.api.repository.BankAccountRepository;
-import bank.account.api.repository.TransactionRepository;
 
 @Service
 public class AccountServiceImp implements AccountService {
@@ -28,9 +27,6 @@ public class AccountServiceImp implements AccountService {
 	@Autowired
 	private BankAccountRepository accountRepository;
 	
-	@Autowired
-	private TransactionRepository transactionRepository;
-	
 	
 	@Override
 	public List<BankAccount> getAccounts() {
@@ -41,36 +37,36 @@ public class AccountServiceImp implements AccountService {
 
 	@Override
 	public BankAccount getAccount(Long accountNumber) throws BaseException {	
-		BankAccount account = accountRepository.findByNumber(accountNumber);
-		if (account == null) {
+		Optional<BankAccount> account = accountRepository.findById(accountNumber);		
+		if (account.isEmpty()){
 			throw new AccountNotFoundException(INVALID_ACCOUNT_NUMBER, "accountNumber");
 		}
 		
-		return account;
+		return account.get();
 	}
 
 	@Override
 	public boolean isAccountExist(Long accountNumber) {        
-		return accountRepository.findByNumber(accountNumber) != null;
+		return !accountRepository.findById(accountNumber).isEmpty();
 	}
 
 	@Override
 	public List<Transaction> getHistory(Long accountNumber) throws BaseException {
-		BankAccount account = accountRepository.findByNumber(accountNumber);
-		if (account == null) {
+		Optional<BankAccount> account = accountRepository.findById(accountNumber);		
+		if (account.isEmpty()){
 			throw new AccountNotFoundException(INVALID_ACCOUNT_NUMBER, "accountNumber");
 		}
-		return account.getHistory().stream().collect(Collectors.toList());
+		return account.get().getHistory().stream().collect(Collectors.toList());
 	}
 
 	@Override
 	public double getBalance(Long accountNumber) throws BaseException {
-		BankAccount account = accountRepository.findByNumber(accountNumber);
-		if (account == null) {
+		Optional<BankAccount> account = accountRepository.findById(accountNumber);		
+		if (account.isEmpty()){
 			throw new AccountNotFoundException(INVALID_ACCOUNT_NUMBER, "accountNumber");
-		}		
+		}	
 		
-		return account.getBalance();
+		return account.get().getBalance();
 	}
 	
 	@Override
@@ -92,14 +88,15 @@ public class AccountServiceImp implements AccountService {
 	 * @return return transaction id
 	 */
 	private Long makeOperation (TransactionType type, Long accountNumber, double amount, String comment) {		
-		BankAccount account = accountRepository.findByNumber(accountNumber);
-		if (account == null) {
+		Optional<BankAccount> result = accountRepository.findById(accountNumber);		
+		if (result.isEmpty()){
 			throw new AccountNotFoundException(INVALID_ACCOUNT_NUMBER, "accountNumber");
 		}
-		
 		if (amount <= 0) {
 			throw new InvalidOperationException(INVALID_AMOUNT, "amount");
 		}
+		
+		BankAccount account = result.get();
 		
 		if (TransactionType.WITHDRAWAL.equals(type) && account.getBalance() < amount) {
 			throw new InvalidOperationException(NOT_ENOUGH_CASH, "amount");
@@ -111,8 +108,11 @@ public class AccountServiceImp implements AccountService {
 		
 		double newBalance = account.getBalance() + amount;
 		account.setBalance(newBalance);
-		Transaction transaction = Transaction.builder().bankaccount(account).date(LocalDateTime.now()).comment(comment).transactionType(type).amount(amount).build();
-		transactionRepository.save(transaction);
+		Transaction transaction = Transaction.builder()
+				.amount(amount).bankaccount(account).comment(comment).date(LocalDateTime.now()).transactionType(type).build();
+		
+		account.getHistory().add(transaction);
+		
 		accountRepository.save(account);
 		
 		return transaction.getId();

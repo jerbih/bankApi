@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +31,6 @@ import bank.account.api.exception.InvalidOperationException;
 import bank.account.api.model.BankAccount;
 import bank.account.api.model.Transaction;
 import bank.account.api.repository.BankAccountRepository;
-import bank.account.api.repository.TransactionRepository;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes=BankAccountApplication.class)
@@ -45,8 +45,6 @@ public class AccountServiceTest {
 	@Mock
 	private BankAccountRepository accountRepository;
 	
-	@Mock
-	private TransactionRepository transactionRepository;
 
 	private List<BankAccount> bankAccounts = new ArrayList<>();
 
@@ -65,14 +63,14 @@ public class AccountServiceTest {
 
 	@Test
 	public void isAccountExist_return_false_when_account_doesnt_exist () {
-		Mockito.when(accountRepository.findByNumber(20l)).thenReturn(null);		
+		Mockito.when(accountRepository.findById(20l)).thenReturn(Optional.empty());		
 		assertFalse(accountService.isAccountExist(20l));      
 	}
 
 	@Test
 	public void isAccountExist_return_true_when_account_exist () {
 		//GIVEN
-		Mockito.when(accountRepository.findByNumber(1l)).thenReturn(bankAccounts.get(0));		
+		Mockito.when(accountRepository.findById(1l)).thenReturn(Optional.of(bankAccounts.get(0)));		
 		//THEN
 		assertTrue(accountService.isAccountExist(1l));      
 	}
@@ -80,7 +78,7 @@ public class AccountServiceTest {
 	@Test
 	public void getBalance_throws_exception_when_account_doesnt_exist () {
 		//GIVEN
-		Mockito.when(accountRepository.findByNumber(20l)).thenReturn(null);
+		Mockito.when(accountRepository.findById(20l)).thenReturn(Optional.empty());
 
 		//THEN
 		AccountNotFoundException exception = assertThrows(AccountNotFoundException.class, () -> {
@@ -96,7 +94,7 @@ public class AccountServiceTest {
 	@Test
 	public void getBalance_return_customer_account_balance_when_account_exist () {
 		//GIVEN
-		Mockito.when(accountRepository.findByNumber(2l)).thenReturn(bankAccounts.get(1));
+		Mockito.when(accountRepository.findById(2l)).thenReturn(Optional.of(bankAccounts.get(1)));
 
 		//THEN
 		double balance = accountService.getBalance(2l);
@@ -108,7 +106,7 @@ public class AccountServiceTest {
 	@Test
 	public void getHistory_throws_exception_when_account_doesnt_exist () {
 		//GIVEN
-		Mockito.when(accountRepository.findByNumber(20l)).thenReturn(null);
+		Mockito.when(accountRepository.findById(20l)).thenReturn(Optional.empty());
 
 		//WHEN
 
@@ -125,20 +123,20 @@ public class AccountServiceTest {
 	@Test
 	public void getHistory_return_customer_account_history_when_account_exist () {
 		//GIVEN
-		Mockito.when(accountRepository.findByNumber(1l)).thenReturn(bankAccounts.get(0));
+		Mockito.when(accountRepository.findById(1l)).thenReturn(Optional.of(bankAccounts.get(0)));
 
 		//WHEN
 		List<Transaction> history = accountService.getHistory(1l);
 
 		//THEN
 		assertEquals(2, history.size());
-		assertEquals(1, history.get(0).getBankaccount().getNumber());
+		assertEquals(1, history.get(0).getBankaccount().getId());
 	}
 
 	@Test
 	public void deposit_throws_exception_when_account_doesnt_exist () {
 		//GIVEN
-		Mockito.when(accountRepository.findByNumber(20l)).thenReturn(null);
+		Mockito.when(accountRepository.findById(20l)).thenReturn(Optional.empty());
 
 		//WHEN
 		AccountNotFoundException exception = assertThrows(AccountNotFoundException.class, () -> {
@@ -155,7 +153,7 @@ public class AccountServiceTest {
 	public void deposit_modify_bank_account_balance_when_account_exist_and_amount_valid () {
 		//GIVEN
 		BankAccount account = bankAccounts.get(3);
-		Mockito.when(accountRepository.findByNumber(4l)).thenReturn(account);
+		Mockito.when(accountRepository.findById(4l)).thenReturn(Optional.of(account));
 		
 		Mockito.when(accountRepository.save(account)).thenReturn(account);
 		
@@ -175,7 +173,7 @@ public class AccountServiceTest {
 	@Test
 	public void withDraw_throws_exception_when_amount_not_valid () {
 		//GIVEN
-		Mockito.when(accountRepository.findByNumber(1l)).thenReturn(bankAccounts.get(0));
+		Mockito.when(accountRepository.findById(1l)).thenReturn(Optional.of(bankAccounts.get(0)));
 
 		//WHEN
 		InvalidOperationException exception = assertThrows(InvalidOperationException.class, () -> {
@@ -191,7 +189,7 @@ public class AccountServiceTest {
 	@Test
 	public void withDraw_throws_exception_when_amount_greater_than_balance () {
 		//GIVEN
-		Mockito.when(accountRepository.findByNumber(2l)).thenReturn(bankAccounts.get(1));
+		Mockito.when(accountRepository.findById(2l)).thenReturn(Optional.of(bankAccounts.get(1)));
 
 		//WHEN
 		InvalidOperationException exception = assertThrows(InvalidOperationException.class, () -> {
@@ -208,7 +206,7 @@ public class AccountServiceTest {
 	public void withDraw_throws_exception_when_account_doesnt_exist () {
 		
 		//GIVEN
-		Mockito.when(accountRepository.findByNumber(1l)).thenReturn(null);
+		Mockito.when(accountRepository.findById(1l)).thenReturn(Optional.empty());
 
 		//WHEN
 		AccountNotFoundException exception = assertThrows(AccountNotFoundException.class, () -> {
@@ -225,7 +223,7 @@ public class AccountServiceTest {
 	public void withDraw_modify_bank_account_balance_when_account_exist_and_amount_valid () {
 		//GIVEN
 		BankAccount account = bankAccounts.get(2);
-		Mockito.when(accountRepository.findByNumber(3l)).thenReturn(account);
+		Mockito.when(accountRepository.findById(3l)).thenReturn(Optional.of(account));
 		
 		Mockito.when(accountRepository.save(account)).thenReturn(account);
 
@@ -244,7 +242,7 @@ public class AccountServiceTest {
 		BankAccount account = null;
         Set<Transaction> transactions = new HashSet<>();
 		for (int i = 1; i <= BANK_ACCOUNT_TABLE_SIZE; i++) {
-			account = BankAccount.builder().number(Long.valueOf(i)).balance(50*i).build();
+			account = BankAccount.builder().id(Long.valueOf(i)).balance(50*i).build();
 			bankAccounts.add(account);			
 		}
 

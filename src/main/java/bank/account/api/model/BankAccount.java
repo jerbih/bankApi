@@ -6,6 +6,7 @@ import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -17,15 +18,15 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity(name="BANK_ACCOUNT")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-
 public class BankAccount implements Serializable {
-	
+
 	/**
 	 * serialVersionUID
 	 */
@@ -33,27 +34,16 @@ public class BankAccount implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private Long number;
-	
+	private Long id;
+
 	private double balance;
-	
+
 	@JsonIgnore
-	@OneToMany(mappedBy = "bankaccount", cascade=CascadeType.ALL)	
+	@OneToMany(cascade = CascadeType.ALL,
+			fetch = FetchType.LAZY,
+			mappedBy = "bankaccount")
 	@Builder.Default
+	@ToString.Exclude
 	private Set<Transaction> history = new HashSet<>();
-	
-	
-	@JsonIgnore
-	public void setHistory(Set<Transaction> history) {
-        this.history = history;
-        for(Transaction transaction : history) {
-        	transaction.setBankaccount(this);
-        }
-    }
-	
-	
-	
-	
-	
-	
+
 }
